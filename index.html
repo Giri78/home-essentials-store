@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>homeessentials.inn | Home & Kitchen Curated Finds</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration for System Mode & Custom Colors -->
+    <script>
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdfbf7',
+                            100: '#f7f2e6',
+                            200: '#eddcc5',
+                            300: '#e0c29d',
+                            400: '#d0a370',
+                            500: '#bd864b',
+                            600: '#ad713d',
+                            700: '#8e5832',
+                            800: '#73472c',
+                            900: '#5e3b26',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Smooth System-wide theme transitions */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(189, 134, 75, 0.3);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(189, 134, 75, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-[#f9f8f6] dark:bg-[#121212] text-gray-800 dark:text-gray-100 min-h-full flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-300">
+
+    <!-- Top Notification Toast -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <!-- Creator Passcode Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl transform transition-all">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-brand-100 dark:bg-brand-900/30 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-lg font-bold">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-lg font-bold">Creator Portal Access</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter passcode to add new affiliate products</p>
+            </div>
+            <form onsubmit="verifyAdminPasscode(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="admin-passcode-input" required placeholder="Enter passcode " class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                </div>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="closeAuthModal()" class="flex-1 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 font-semibold py-3 px-4 rounded-xl text-sm transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 px-4 rounded-xl text-sm transition shadow-lg shadow-brand-500/25">Access</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Creator Add Product Drawer / Modal -->
+    <div id="creator-drawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl my-8">
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-gray-100 dark:border-zinc-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-brand-100 dark:bg-brand-900/30 text-brand-600 rounded-xl flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold">Add Affiliate Product</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Instantly syncs to cloud for all visitors worldwide</p>
+                    </div>
+                </div>
+                <button onclick="closeCreatorDrawer()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <form id="product-form" onsubmit="handleProductSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1.5">Category</label>
+                    <select id="prod-category" required class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                        <option value="home">Home Essentials</option>
+                        <option value="kitchen">Kitchen Tools & Organizers</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1.5">Product Title</label>
+                    <input type="text" id="prod-title" required placeholder="e.g., Aesthetic Ceramic Coffee Dripper" class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1.5">Platform / Brand Badge</label>
+                    <input type="text" id="prod-badge" placeholder="Amazon / Flipkart / Myntra" value="Amazon" class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1.5">Product Image URL</label>
+                    <input type="url" id="prod-image" required placeholder="https://images.unsplash.com/photo-..." class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                    <p class="text-[10px] text-gray-400 mt-1">Tip: Paste direct image link from Unsplash or Amazon</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider mb-1.5">Affiliate Link</label>
+                    <input type="url" id="prod-link" required placeholder="https://amzn.to/3..." class="w-full bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition">
+                </div>
+                <button type="submit" id="submit-btn" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-500/25 transition duration-200 flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Publish to Cloud Storefront</span>
+                </button>
+            </form>
+            <div class="mt-4 pt-4 border-t border-gray-100 dark:border-zinc-800 text-xs text-gray-400 space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span id="cloud-storage-status">Cloud DB: Connected (Syncing Live)</span>
+                    <button onclick="logoutAdmin()" class="text-brand-600 dark:text-brand-400 hover:underline font-medium">Exit Creator Mode</button>
+                </div>
+                <p class="text-[11px] text-gray-500 leading-relaxed italic">
+                    ☁️ <span class="font-semibold">Cloud Capacity:</span> Stores 10,000+ products securely on Firebase free tier. New products instantly appear at the top for all visitors worldwide!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-7xl mx-auto px-4 py-8 md:py-12 flex-grow flex flex-col">
+
+        <!-- Profile / Header Section -->
+        <header class="relative flex flex-col items-center text-center mb-8">
+            
+            <!-- Creator Portal Authentication & Toggle Button (Discreet & Low Brightness) -->
+            <div class="absolute right-0 top-0 flex items-center space-x-2">
+                <button onclick="checkAdminAccess()" id="creator-mode-btn" class="text-gray-300 dark:text-zinc-700 hover:text-brand-500 dark:hover:text-brand-400 p-2 rounded-full text-xs transition duration-300 opacity-20 hover:opacity-100" title="Creator Access">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Avatar -->
+            <div class="relative mb-4 group">
+                <div class="w-24 h-24 md:w-28 md:h-28 rounded-full p-1 bg-gradient-to-tr from-brand-300 via-brand-500 to-amber-200 shadow-xl">
+                    <img src="https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&q=80&w=300" alt="homeessentials.inn" class="w-full h-full object-cover rounded-full bg-white dark:bg-zinc-900">
+                </div>
+                <span class="absolute bottom-1 right-1 bg-emerald-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] ring-2 ring-white dark:ring-zinc-900" title="Verified Creator">
+                    <i class="fa-solid fa-check"></i>
+                </span>
+            </div>
+
+            <!-- Username & Bio -->
+            <div class="space-y-1.5 max-w-md">
+                <div class="flex items-center justify-center space-x-1.5">
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">homeessentials.inn</h1>
+                    <i class="fa-solid fa-certificate text-brand-500 text-sm" title="Official Account"></i>
+                </div>
+                <p class="text-xs md:text-sm font-medium text-brand-600 dark:text-brand-400">Home and Kitchen essentials</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed px-4">
+                    Smart Home & Kitchen Finds • Make your home more organized & useful • Kitchen Tools • Organizers • Daily Essentials
+                </p>
+            </div>
+
+            <!-- Social / Quick Links Badge & Trust Pills -->
+            <div class="flex flex-wrap items-center justify-center gap-2.5 mt-4 text-xs font-medium text-gray-600 dark:text-gray-300">
+                <span class="flex items-center space-x-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 px-3.5 py-1.5 rounded-full border border-brand-200 dark:border-brand-800/50">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="total-products-badge">0 Curated Products</span>
+                </span>
+                <span class="flex items-center space-x-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-3.5 py-1.5 rounded-full border border-emerald-200 dark:border-emerald-900/50">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>100% Verified Deals</span>
+                </span>
+                <a href="https://instagram.com/homeessentials.inn" target="_blank" rel="noopener noreferrer" class="flex items-center space-x-1.5 bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-pink-600 dark:text-pink-400 px-3.5 py-1.5 rounded-full hover:opacity-80 transition border border-pink-200/50 dark:border-pink-900/30">
+                    <i class="fa-brands fa-instagram"></i>
+                    <span>Instagram</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Search Bar & Highlights Banner -->
+        <div class="mb-6 space-y-3">
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </span>
+                <input type="text" id="search-input" oninput="handleSearch(event)" placeholder="Search home organizers, kitchen tools, aesthetic decor..." class="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl pl-11 pr-4 py-3.5 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm transition">
+            </div>
+            
+            <!-- Announcement Banner -->
+            <div class="bg-gradient-to-r from-brand-600 to-amber-700 text-white p-4 rounded-2xl shadow-md flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-bolt text-amber-200"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs md:text-sm font-bold">✨ Handpicked Daily Deals</h4>
+                        <p class="text-[11px] text-amber-100 opacity-90">Click 'Check Price' to view discount offers directly on Amazon & Flipkart.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (Home vs Kitchen) -->
+        <div class="sticky top-4 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-1.5 rounded-2xl border border-gray-200/80 dark:border-zinc-800 shadow-lg shadow-black/5 mb-8 flex space-x-2">
+            <button onclick="switchTab('home')" id="tab-home" class="flex-1 py-3 px-4 rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-brand-600 text-white shadow-md shadow-brand-500/20">
+                <i class="fa-solid fa-house-chimney"></i>
+                <span>Home Essentials</span>
+                <span id="home-count-pill" class="bg-white/20 text-white px-2 py-0.5 rounded-full text-[10px]">0</span>
+            </button>
+            <button onclick="switchTab('kitchen')" id="tab-kitchen" class="flex-1 py-3 px-4 rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800">
+                <i class="fa-solid fa-utensils"></i>
+                <span>Kitchen Tools</span>
+                <span id="kitchen-count-pill" class="bg-gray-200 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full text-[10px]">0</span>
+            </button>
+        </div>
+
+        <!-- Products Feed Container -->
+        <section id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 flex-grow">
+            <!-- Dynamic products injected here -->
+        </section>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="hidden text-center py-16 px-4 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm mt-2">
+            <div class="w-16 h-16 bg-brand-50 dark:bg-brand-900/20 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-box-open"></i>
+            </div>
+            <h3 class="text-base font-bold mb-1">No products added yet</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mx-auto mb-5">Click below to add your first affiliate product to this storefront!</p>
+            <button onclick="checkAdminAccess()" id="empty-add-btn" class="inline-flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-md shadow-brand-500/20">
+                <i class="fa-solid fa-plus"></i>
+                <span>Add New Product</span>
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 pt-8 border-t border-gray-200 dark:border-zinc-800 text-center text-xs text-gray-400 dark:text-gray-500 space-y-2">
+            <p>© <span id="current-year"></span> homeessentials.inn. Curated Affiliate Storefront.</p>
+            <p class="text-[11px] max-w-md mx-auto leading-relaxed">
+                *As an affiliate partner, we earn a small commission from qualifying purchases made through our links at no extra cost to you.
+            </p>
+            <!-- Discreet Creator Portal Link in Footer -->
+            <div class="pt-2">
+                <button onclick="checkAdminAccess()" class="text-[10px] text-gray-300 dark:text-zinc-700 hover:text-gray-500 dark:hover:text-zinc-500 transition opacity-30 hover:opacity-100">
+                    Creator Admin Login
+                </button>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Firebase Global references
+        let app, db, auth;
+        let currentTab = 'home';
+        let allProducts = [];
+        let searchQuery = '';
+        let isAdminLoggedIn = false;
+
+        const defaultPasscode = "70329177";
+
+        // Load local fallback products if stored in localStorage
+        function getLocalProducts() {
+            try {
+                const stored = localStorage.getItem('homeessentials_local_products');
+                return stored ? JSON.parse(stored) : [];
+            } catch(e) {
+                return [];
+            }
+        }
+
+        function saveLocalProducts(prods) {
+            try {
+                localStorage.setItem('homeessentials_local_products', JSON.stringify(prods));
+            } catch(e) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('current-year').innerText = new Date().getFullYear();
+            
+            // Load initial from local storage instantly
+            allProducts = getLocalProducts();
+            renderProducts();
+
+            // Initialize Firebase if configured
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'homeessentials-storefront';
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+                    apiKey: "AIzaSyCAYqKG3eWH9L9qHt16Z_cGHT0dSwekw20",
+                    authDomain: "home-essentials-store-85834.firebaseapp.com",
+                    projectId: "home-essentials-store-85834",
+                    storageBucket: "home-essentials-store-85834.firebasestorage.app",
+                    messagingSenderId: "788954976541",
+                    appId: "1:788954976541:web:ba6763dff8398b430391f4"
+                };
+
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // MANDATORY RULE: Authenticate FIRST before any queries
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Listen to Cloud Firestore collection in real-time with strict path & error callback
+                const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'storefront_products');
+                
+                onSnapshot(productsRef, (snapshot) => {
+                    const cloudItems = [];
+                    snapshot.forEach(docSnap => {
+                        cloudItems.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    if (cloudItems.length > 0) {
+                        // Sort latest added product on top
+                        allProducts = cloudItems.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        saveLocalProducts(allProducts);
+                        renderProducts();
+                    }
+                }, (error) => {
+                    console.warn("Cloud Firestore live sync fallback:", error);
+                });
+
+            } catch (err) {
+                console.warn("Running in offline standalone mode:", err);
+            }
+        });
+
+        // Tab Switching logic
+        window.switchTab = function(tab) {
+            currentTab = tab;
+            const homeBtn = document.getElementById('tab-home');
+            const kitchenBtn = document.getElementById('tab-kitchen');
+
+            if (tab === 'home') {
+                homeBtn.className = "flex-1 py-3 px-4 rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-brand-600 text-white shadow-md shadow-brand-500/20";
+                kitchenBtn.className = "flex-1 py-3 px-4 rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800";
+            } else {
+                kitchenBtn.className = "flex-1 py-3 px-4 rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-brand-600 text-white shadow-md shadow-brand-500/20";
+                homeBtn.className = "flex-1 py-3 px-4 rounded-xl font-semibold text-xs md:text-sm transition-all duration-200 flex items-center justify-center space-x-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800";
+            }
+            renderProducts();
+        };
+
+        // Search Input Handler
+        window.handleSearch = function(e) {
+            searchQuery = e.target.value.toLowerCase().trim();
+            renderProducts();
+        };
+
+        // Render products feed with search and counts
+        function renderProducts() {
+            const container = document.getElementById('products-container');
+            const emptyState = document.getElementById('empty-state');
+            const totalBadge = document.getElementById('total-products-badge');
+
+            totalBadge.innerText = `${allProducts.length} Curated Products`;
+
+            // Update pills
+            const homeCount = allProducts.filter(p => p.category === 'home').length;
+            const kitchenCount = allProducts.filter(p => p.category === 'kitchen').length;
+            document.getElementById('home-count-pill').innerText = homeCount;
+            document.getElementById('kitchen-count-pill').innerText = kitchenCount;
+
+            // Filter by tab and search query
+            let filtered = allProducts.filter(p => p.category === currentTab);
+            if (searchQuery) {
+                filtered = filtered.filter(p => p.title.toLowerCase().includes(searchQuery));
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = filtered.map(product => `
+                <div class="group bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-3xl p-4 md:p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col gap-4 items-stretch">
+                    <!-- Product Image -->
+                    <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-gray-100 dark:bg-zinc-800 flex-shrink-0">
+                        <img src="${product.image}" alt="${product.title}" onerror="this.src='https://placehold.co/400x400/f7f2e6/bd864b?text=Home+Essentials'" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        <span class="absolute top-3 left-3 bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                            ${product.badge || 'Amazon'}
+                        </span>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="flex-grow flex flex-col justify-between w-full space-y-4">
+                        <div>
+                            <span class="text-xs font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wider">
+                                ${product.category === 'home' ? 'Home Essential' : 'Kitchen Tool'}
+                            </span>
+                            <h3 class="text-base md:text-lg font-bold text-gray-900 dark:text-gray-100 mt-1 leading-snug">
+                                ${product.title}
+                            </h3>
+                        </div>
+                        <div class="flex items-center justify-end pt-2">
+                            <a href="${product.link}" target="_blank" rel="noopener noreferrer" onclick="trackAffiliateClick('${product.title.replace(/'/g, "\\'")}')" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-6 py-3 rounded-xl text-xs md:text-sm shadow-lg shadow-brand-500/25 transition duration-200 flex items-center space-x-2 group-hover:scale-[1.02]">
+                                <span>Check on ${product.badge || 'Amazon'}</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Creator Portal Control
+        window.checkAdminAccess = function() {
+            if (isAdminLoggedIn) {
+                document.getElementById('creator-drawer').classList.remove('hidden');
+            } else {
+                document.getElementById('auth-modal').classList.remove('hidden');
+            }
+        };
+
+        window.closeAuthModal = function() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        };
+
+        window.closeCreatorDrawer = function() {
+            document.getElementById('creator-drawer').classList.add('hidden');
+        };
+
+        window.verifyAdminPasscode = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('admin-passcode-input').value;
+            if (input === defaultPasscode) {
+                isAdminLoggedIn = true;
+                closeAuthModal();
+                document.getElementById('creator-drawer').classList.remove('hidden');
+                document.getElementById('admin-passcode-input').value = '';
+                showToast("Creator mode unlocked successfully!", "success");
+            } else {
+                showToast("Incorrect passcode. Try again", "error");
+            }
+        };
+
+        window.logoutAdmin = function() {
+            isAdminLoggedIn = false;
+            closeCreatorDrawer();
+            showToast("Exited Creator Mode", "info");
+        };
+
+        // Handle Product Submission and Cloud Sync
+        window.handleProductSubmit = async function(e) {
+            e.preventDefault();
+            const category = document.getElementById('prod-category').value;
+            const title = document.getElementById('prod-title').value.trim();
+            const badge = document.getElementById('prod-badge').value.trim() || 'Amazon';
+            const image = document.getElementById('prod-image').value.trim();
+            const link = document.getElementById('prod-link').value.trim();
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i><span>Publishing to Cloud...</span>`;
+
+            const newProduct = {
+                category,
+                title,
+                badge,
+                image,
+                link,
+                createdAt: Date.now()
+            };
+
+            try {
+                // Save locally first for instant persistence
+                allProducts.unshift({ id: 'local-' + Date.now(), ...newProduct });
+                saveLocalProducts(allProducts);
+                renderProducts();
+
+                if (db && auth && auth.currentUser) {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'homeessentials-storefront';
+                    const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'storefront_products');
+                    await addDoc(productsRef, newProduct);
+                    showToast("Product successfully published to cloud and saved!", "success");
+                } else {
+                    showToast("Product added successfully to storefront!", "success");
+                }
+
+                // Reset form
+                document.getElementById('product-form').reset();
+                closeCreatorDrawer();
+            } catch (err) {
+                console.error("Error saving product:", err);
+                showToast("Product saved locally!", "success");
+                closeCreatorDrawer();
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i><span>Publish to Cloud Storefront</span>`;
+            }
+        };
+
+        // Affiliate Click Analytics / Toast
+        window.trackAffiliateClick = function(productTitle) {
+            showToast(`Redirecting to partner site...`, "info");
+        };
+
+        // Toast Notification Helper
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-gray-900 text-white dark:bg-zinc-800";
+            let icon = "fa-circle-info text-brand-400";
+            if (type === 'success') {
+                bgClass = "bg-emerald-600 text-white";
+                icon = "fa-circle-check text-white";
+            } else if (type === 'error') {
+                bgClass = "bg-rose-600 text-white";
+                icon = "fa-circle-exclamation text-white";
+            }
+
+            toast.className = `${bgClass} pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-semibold flex items-center space-x-2.5 transition-all duration-300 transform translate-y-2 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
