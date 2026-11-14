@@ -331,7 +331,8 @@
                 }
 
                 // Listen to Cloud Firestore collection in real-time with strict path & error callback
-                const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'storefront_products');
+                // const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'storefront_products');
+                const productsRef = collection(db, 'products');
                 
                 onSnapshot(productsRef, (snapshot) => {
                     const cloudItems = [];
